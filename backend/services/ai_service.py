@@ -33,9 +33,8 @@ async def generate_briefing(articles: list[dict]) -> dict:
     """
 
     try:
-        # gemini-1.5-flash is extremely fast and perfect for this use-case
         model = genai.GenerativeModel(
-            'gemini-1.5-flash',
+            'gemini-3.5-flash',
             generation_config={"response_mime_type": "application/json"}
         )
         
