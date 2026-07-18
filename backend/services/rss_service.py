@@ -4,9 +4,12 @@ from datetime import datetime
 import asyncio
 
 async def fetch_feed(url: str) -> list:
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+    async with httpx.AsyncClient(timeout=20.0, headers=headers) as client:
         try:
-            response = await client.get(url)
+            response = await client.get(url, follow_redirects=True)
             response.raise_for_status()
             feed = feedparser.parse(response.text)
             
