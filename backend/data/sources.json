@@ -1,1 +1,21 @@
-
+{
+  "ai": [
+    "https://feeds.feedburner.com/TechCrunch/artificial-intelligence",
+    "https://news.mit.edu/rss/topic/artificial-intelligence2"
+  ],
+  "mechanical": [
+    "https://phys.org/rss-feed/technology-news/engineering/"
+  ],
+  "electrical": [
+    "https://spectrum.ieee.org/feeds/feed.rss"
+  ],
+  "civil": [
+    "https://www.newcivilengineer.com/feed/"
+  ],
+  "chemical": [
+    "https://www.chemicalprocessing.com/rss"
+  ],
+  "materials": [
+    "https://www.materialstoday.com/rss"
+  ]
+}
