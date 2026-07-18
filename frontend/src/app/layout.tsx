@@ -13,7 +13,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen">
+      {/* Added max-w-4xl, mx-auto to center content, and px-6 to prevent edge-touching */}
+      <body className="antialiased min-h-screen max-w-4xl mx-auto px-6 py-10 md:py-16">
         {children}
       </body>
     </html>
