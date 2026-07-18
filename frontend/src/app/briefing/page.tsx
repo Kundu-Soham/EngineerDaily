@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Loader2 } from "lucide-react";
 
-// Mock data structures matching your main.py response format
 type Story = {
   title: string;
   publisher: string;
@@ -18,23 +18,23 @@ type BriefingData = {
   stories: Story[];
 };
 
-export default function BriefingPage({ data, categoryName }: { data: BriefingData; categoryName: string }) {
+// 1. Rename your UI component so it's a regular sub-component, not the default page export
+function BriefingLayout({ data, categoryName }: { data: BriefingData; categoryName: string }) {
   const router = useRouter();
 
   return (
-    // Centered layout with responsive padding
     <main className="max-w-4xl mx-auto px-6 py-10 md:py-16 text-[var(--foreground)]">
-      
-      {/* 1. Styled Back Button */}
       <button 
-        onClick={() => router.push("/")}
+        onClick={() => {
+          localStorage.removeItem("engineer_discipline");
+          router.push("/");
+        }}
         className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors shadow-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Change Discipline
       </button>
 
-      {/* 2. Header Section */}
       <header className="mb-12">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight capitalize mb-2">
           {categoryName} Briefing
@@ -45,7 +45,6 @@ export default function BriefingPage({ data, categoryName }: { data: BriefingDat
         </div>
       </header>
 
-      {/* 3. Today's Overview Section */}
       <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)]">
           Today's Overview
@@ -55,33 +54,28 @@ export default function BriefingPage({ data, categoryName }: { data: BriefingDat
         </p>
       </section>
 
-      {/* 4. Top Stories List */}
       <section>
         <h2 className="text-2xl font-bold mb-6 tracking-tight">Top Stories</h2>
         <div className="flex flex-col gap-6">
           {data?.stories?.map((story, idx) => (
             <article 
               key={idx} 
-              className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3"
+              className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3"
             >
-              {/* Publisher & Date Subtitle metadata */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-wider uppercase text-neutral-400 dark:text-neutral-500">
                 <span>{story.publisher}</span>
                 <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
                 <span>{story.published}</span>
               </div>
 
-              {/* Story Title */}
               <h3 className="text-lg md:text-xl font-bold tracking-tight leading-snug">
                 {story.title}
               </h3>
 
-              {/* AI-Generated Summary Paragraph */}
               <p className="text-neutral-600 dark:text-neutral-300 text-sm md:text-base leading-relaxed">
                 {story.summary}
               </p>
 
-              {/* Styled External Anchor Link */}
               <div className="pt-2">
                 <a 
                   href={story.url} 
@@ -99,4 +93,63 @@ export default function BriefingPage({ data, categoryName }: { data: BriefingDat
       </section>
     </main>
   );
+}
+
+// 2. The valid default Page component that Next.js expects
+export default function BriefingPage() {
+  const [data, setData] = useState<BriefingData | null>(null);
+  const [category, setCategory] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const savedCategory = localStorage.getItem("engineer_discipline");
+    if (!savedCategory) {
+      router.push("/");
+      return;
+    }
+    setCategory(savedCategory);
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/briefing/${savedCategory}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load briefing.");
+        return res.json();
+      })
+      .then((briefingData) => {
+        setData(briefingData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
+        <p className="text-neutral-500 font-medium">Generating your briefing...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center">
+        <div className="p-4 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl mb-6">
+          {error}
+        </div>
+        <button 
+          onClick={() => router.push("/")}
+          className="px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  return <BriefingLayout data={data!} categoryName={category} />;
 }
