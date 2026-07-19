@@ -37,26 +37,30 @@ function BriefingLayout({
   };
 
   return (
-    <div className="w-full min-h-screen bg-[var(--background)] relative transition-colors duration-300">
+    <div className="w-full min-h-screen bg-[var(--background)] flex flex-col transition-colors duration-300">
       
-      {/* Absolute positioned dark mode button */}
-      <button
-        onClick={toggleDarkMode}
-        className="absolute top-6 right-6 p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm z-50"
-        aria-label="Toggle dark mode"
-      >
-        {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
-      </button>
-
-      <main className="max-w-4xl mx-auto px-6 py-10 md:py-16 text-[var(--foreground)] pt-20">
+      {/* FIXED: Replaced absolute container with a standard header row to prevent overlapping on mobile text */}
+      <header className="w-full max-w-4xl mx-auto px-6 pt-6 flex justify-between items-center gap-4">
         <button 
           onClick={handleClearAndExit}
-          className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          Change Discipline
+          <span className="hidden xs:inline">Change Discipline</span>
+          <span className="xs:hidden">Back</span>
         </button>
 
+        <button
+          onClick={toggleDarkMode}
+          className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+          aria-label="Toggle dark mode"
+        >
+          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+        </button>
+      </header>
+
+      {/* FIXED: Cleaned up spacing padding to work sequentially with the new header bar */}
+      <main className="max-w-4xl w-full mx-auto px-6 py-10 text-[var(--foreground)]">
         <header className="mb-12">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent py-1">
             {categoryName} Briefing
@@ -67,7 +71,6 @@ function BriefingLayout({
           </div>
         </header>
 
-        {/* --- FIXED: Changed dark:text-slate-300 to dark:text-slate-200 for higher contrast overview text --- */}
         <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)] font-semibold">
             Today's Overview
@@ -85,7 +88,6 @@ function BriefingLayout({
                 key={idx} 
                 className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
               >
-                {/* --- FIXED: Adjusted source meta labels to look cleanly visible --- */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-400 dark:text-slate-400">
                   <span>{story.publisher}</span>
                   <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
@@ -96,7 +98,6 @@ function BriefingLayout({
                   {story.title}
                 </h3>
 
-                {/* --- FIXED: Changed dark:text-slate-300 to dark:text-slate-300 with cleaner spacing --- */}
                 <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed">
                   {story.summary}
                 </p>
@@ -191,16 +192,18 @@ export default function BriefingPage() {
 
   if (error) {
     return (
-      <div className="w-full min-h-screen bg-[var(--background)] relative flex flex-col justify-center">
-        <button
-          onClick={toggleDarkMode}
-          className="absolute top-6 right-6 p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm z-50"
-          aria-label="Toggle dark mode"
-        >
-          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
-        </button>
+      <div className="w-full min-h-screen bg-[var(--background)] flex flex-col transition-colors duration-300">
+        <header className="w-full max-w-4xl mx-auto px-6 pt-6 flex justify-end">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+            aria-label="Toggle dark mode"
+          >
+            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+          </button>
+        </header>
 
-        <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center">
+        <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center flex-1 justify-center">
           <div className="p-4 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl mb-6 border border-red-100 dark:border-red-900/30">
             {error}
           </div>
