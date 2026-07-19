@@ -6,7 +6,6 @@ import { Cpu, Settings, Zap, HardHat, FlaskConical, Layers } from "lucide-react"
 
 type Category = { id: string; name: string };
 
-// Define your categories statically right here so they load instantly (0ms)
 const STATIC_CATEGORIES: Category[] = [
   { id: "ai", name: "AI & Tech" },
   { id: "mechanical", name: "Mechanical" },
@@ -29,25 +28,23 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // 1. If they've already picked a discipline, route them instantly
-    const saved = localStorage.getItem("engineer_discipline");
+    // 1. Switch to sessionStorage: This is only active during the current tab session.
+    // If they open a new tab or close the site, this will be null and show the homepage.
+    const saved = sessionStorage.getItem("engineer_discipline");
     if (saved) {
       router.push("/briefing");
       return;
     }
 
-    // 2. Quietly wake up Render backend in the background so it's
-    // spinning up while the user reads this screen!
+    // 2. Quietly wake up Render backend in the background
     if (process.env.NEXT_PUBLIC_API_URL) {
-      // Just hit your root API or a simple health endpoint to trigger cold start
-      fetch(process.env.NEXT_PUBLIC_API_URL).catch(() => {
-        // Silently catch errors; we only care about spinning the container up
-      });
+      fetch(process.env.NEXT_PUBLIC_API_URL).catch(() => {});
     }
   }, [router]);
 
   const selectCategory = (id: string) => {
-    localStorage.setItem("engineer_discipline", id);
+    // Save to sessionStorage instead of localStorage
+    sessionStorage.setItem("engineer_discipline", id);
     router.push("/briefing");
   };
 
@@ -60,7 +57,6 @@ export default function Home() {
         Choose your engineering discipline for a customized, 5-minute daily briefing.
       </p>
 
-      {/* Render the grid instantly from static data */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
         {STATIC_CATEGORIES.map((cat) => {
           const Icon = ICON_MAP[cat.id] || Settings;
