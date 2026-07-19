@@ -36,10 +36,29 @@ function BriefingLayout({
     router.push("/");
   };
 
+  // HELPER FUNCTION: Splits the large paragraph into clean, independent points
+  const formatOverview = (text: string) => {
+    if (!text) return null;
+    // Splits by period followed by space, filtering out empty strings
+    const sentences = text.split(/\.\s+/).map(s => s.trim()).filter(Boolean);
+    
+    return (
+      <ul className="space-y-4">
+        {sentences.map((sentence, index) => (
+          <li key={index} className="flex items-start gap-3 text-slate-900 dark:text-slate-100 text-base md:text-lg leading-relaxed font-medium">
+            {/* Custom subtle marker bullet matching your accent color */}
+            <span className="mt-2.5 w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+            <span>{sentence.endsWith('.') ? sentence : `${sentence}.`}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div className="w-full min-h-screen bg-[var(--background)] flex flex-col transition-colors duration-300">
       
-      {/* FIXED: Replaced absolute container with a standard header row to prevent overlapping on mobile text */}
+      {/* Header Navigation Bar */}
       <header className="w-full max-w-4xl mx-auto px-6 pt-6 flex justify-between items-center gap-4">
         <button 
           onClick={handleClearAndExit}
@@ -59,46 +78,47 @@ function BriefingLayout({
         </button>
       </header>
 
-      {/* FIXED: Cleaned up spacing padding to work sequentially with the new header bar */}
+      {/* Main Content Area */}
       <main className="max-w-4xl w-full mx-auto px-6 py-10 text-[var(--foreground)]">
         <header className="mb-12">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent py-1">
             {categoryName} Briefing
           </h1>
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium">
             <Calendar className="w-4 h-4" />
             <span>Saturday, July 18th, 2026</span>
           </div>
         </header>
 
+        {/* --- FIXED: Formatted overview using our bullet/list layout instead of one huge paragraph block --- */}
         <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)] font-semibold">
+          <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-[var(--accent)] font-semibold">
             Today's Overview
           </h2>
-          <p className="text-slate-700 dark:text-slate-200 leading-relaxed text-base md:text-lg font-medium">
-            {data?.overview}
-          </p>
+          <div className="pl-1">
+            {formatOverview(data?.overview)}
+          </div>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold mb-6 tracking-tight text-[var(--foreground)]">Top Stories</h2>
+          <h2 className="text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-50">Top Stories</h2>
           <div className="flex flex-col gap-6">
             {data?.stories?.map((story, idx) => (
               <article 
                 key={idx} 
                 className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
               >
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-400 dark:text-slate-400">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
                   <span>{story.publisher}</span>
                   <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                   <span>{story.published}</span>
                 </div>
 
-                <h3 className="text-lg md:text-xl font-bold tracking-tight leading-snug text-[var(--foreground)]">
+                <h3 className="text-lg md:text-xl font-bold tracking-tight leading-snug text-slate-900 dark:text-slate-100">
                   {story.title}
                 </h3>
 
-                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-300 text-sm md:text-base leading-relaxed">
                   {story.summary}
                 </p>
 
@@ -185,7 +205,7 @@ export default function BriefingPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen fixed inset-0 bg-[var(--background)] overflow-hidden gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
-        <p className="text-slate-500 font-medium dark:text-slate-300">Generating your briefing...</p>
+        <p className="text-slate-700 font-medium dark:text-slate-300">Generating your briefing...</p>
       </div>
     );
   }
