@@ -136,7 +136,7 @@ export default function BriefingPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <div className="flex flex-col items-center justify-center h-screen w-screen fixed inset-0 bg-[var(--background)] overflow-hidden gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
         <p className="text-neutral-500 font-medium">Generating your briefing...</p>
       </div>
