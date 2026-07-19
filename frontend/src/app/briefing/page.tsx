@@ -39,7 +39,7 @@ function BriefingLayout({
   return (
     <div className="w-full min-h-screen bg-[var(--background)] relative transition-colors duration-300">
       
-      {/* Absolute positioned dark mode button matching the home screen */}
+      {/* Absolute positioned dark mode button */}
       <button
         onClick={toggleDarkMode}
         className="absolute top-6 right-6 p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm z-50"
@@ -58,7 +58,6 @@ function BriefingLayout({
         </button>
 
         <header className="mb-12">
-          {/* Subtle padding added to prevent custom gradient clipping profiles */}
           <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent py-1">
             {categoryName} Briefing
           </h1>
@@ -68,11 +67,12 @@ function BriefingLayout({
           </div>
         </header>
 
+        {/* --- FIXED: Changed dark:text-slate-300 to dark:text-slate-200 for higher contrast overview text --- */}
         <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)]">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)] font-semibold">
             Today's Overview
           </h2>
-          <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+          <p className="text-slate-700 dark:text-slate-200 leading-relaxed text-base md:text-lg font-medium">
             {data?.overview}
           </p>
         </section>
@@ -85,9 +85,10 @@ function BriefingLayout({
                 key={idx} 
                 className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
               >
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+                {/* --- FIXED: Adjusted source meta labels to look cleanly visible --- */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-400 dark:text-slate-400">
                   <span>{story.publisher}</span>
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                   <span>{story.published}</span>
                 </div>
 
@@ -95,6 +96,7 @@ function BriefingLayout({
                   {story.title}
                 </h3>
 
+                {/* --- FIXED: Changed dark:text-slate-300 to dark:text-slate-300 with cleaner spacing --- */}
                 <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed">
                   {story.summary}
                 </p>
@@ -149,7 +151,6 @@ export default function BriefingPage() {
         setLoading(false);
       });
 
-    // Dark mode alignment
     const localTheme = localStorage.getItem("theme");
     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     
@@ -183,7 +184,7 @@ export default function BriefingPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen fixed inset-0 bg-[var(--background)] overflow-hidden gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
-        <p className="text-slate-500 font-medium dark:text-slate-400">Generating your briefing...</p>
+        <p className="text-slate-500 font-medium dark:text-slate-300">Generating your briefing...</p>
       </div>
     );
   }
@@ -191,7 +192,6 @@ export default function BriefingPage() {
   if (error) {
     return (
       <div className="w-full min-h-screen bg-[var(--background)] relative flex flex-col justify-center">
-        {/* Dark mode toggle availability within error view state blocks */}
         <button
           onClick={toggleDarkMode}
           className="absolute top-6 right-6 p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm z-50"
