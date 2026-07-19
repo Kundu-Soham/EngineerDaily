@@ -1,10 +1,21 @@
 import json
-import google.generativeai as genai
 import os
+import google.generativeai as genai
+from google.api_core import exceptions
 from dotenv import load_dotenv
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Define your fallback chain: (API_KEY_ENV_NAME, MODEL_NAME)
+# If you don't have a backup key, both will safely use GEMINI_API_KEY but try different models.
+FALLBACK_CHAIN = [
+    ("GEMINI_API_KEY", "gemini-3.5-flash"),
+    ("GEMINI_API_KEY", "gemini-2.5-flash"),
+    ("GEMINI_API_KEY", "gemini-2.0-flash"),
+    # Optional secondary account backup strategy:
+    ("GEMINI_API_KEY_BACKUP", "gemini-2.5-flash"),
+    ("GEMINI_API_KEY_BACKUP", "gemini-2.0-flash"),
+]
 
 async def generate_briefing(articles: list[dict]) -> dict:
     if not articles:
@@ -32,16 +43,46 @@ async def generate_briefing(articles: list[dict]) -> dict:
     {json.dumps(prompt_data)}
     """
 
-    try:
-        model = genai.GenerativeModel(
-            'gemini-3.5-flash',
-            generation_config={"response_mime_type": "application/json"}
-        )
+    # Loop dynamically over our fallback chain configs
+    for key_env_name, model_name in FALLBACK_CHAIN:
+        api_key = os.getenv(key_env_name)
         
-        response = await model.generate_content_async(prompt)
-        
-        result = json.loads(response.text)
-        return result
-    except Exception as e:
-        print(f"Gemini Generation Error: {str(e)}")
-        raise e
+        # Skip if a backup key wasn't provided in your .env file
+        if not api_key:
+            continue
+
+        try:
+            print(f"🔄 Attempting briefing generation using: {model_name} via {key_env_name}...")
+            
+            # Switch client configuration over to the selected key
+            genai.configure(api_key=api_key)
+            
+            model = genai.GenerativeModel(
+                model_name,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            
+            # Execute async text generation request
+            response = await model.generate_content_async(prompt)
+            
+            # Successfully got response text, load and return it
+            result = json.loads(response.text)
+            print(f"✅ Success! Generated summary using model: {model_name}")
+            return result
+
+        except exceptions.ResourceExhausted as e:
+            # Explicitly catches a 429 Quota/Rate Exceeded code from Gemini
+            print(f"⚠️ Quota exhausted for {model_name} ({key_env_name}). Jumping to next fallback option...")
+            continue
+            
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse JSON response from {model_name}: {str(e)}. Retrying fallback...")
+            continue
+            
+        except Exception as e:
+            # Handles unexpected connectivity issues but keeps the chain alive
+            print(f"❌ Unexpected Error using {model_name}: {str(e)}")
+            continue
+
+    # If the loop naturally finishes without returning a valid dictionary layout
+    raise Exception("All available fallback configurations or API keys are completely exhausted for the day.")

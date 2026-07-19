@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon } from "lucide-react";
 
 type Story = {
   title: string;
@@ -18,82 +18,104 @@ type BriefingData = {
   stories: Story[];
 };
 
-function BriefingLayout({ data, categoryName }: { data: BriefingData; categoryName: string }) {
+function BriefingLayout({ 
+  data, 
+  categoryName, 
+  isDarkMode, 
+  toggleDarkMode 
+}: { 
+  data: BriefingData; 
+  categoryName: string;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
+}) {
   const router = useRouter();
 
   const handleClearAndExit = () => {
-    // Clear session storage before leaving so the homepage won't push us straight back here
     sessionStorage.removeItem("engineer_discipline");
     router.push("/");
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-10 md:py-16 text-[var(--foreground)]">
-      <button 
-        onClick={handleClearAndExit}
-        className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors shadow-sm"
+    <div className="w-full min-h-screen bg-[var(--background)] relative transition-colors duration-300">
+      
+      {/* Absolute positioned dark mode button matching the home screen */}
+      <button
+        onClick={toggleDarkMode}
+        className="absolute top-6 right-6 p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm z-50"
+        aria-label="Toggle dark mode"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Change Discipline
+        {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
       </button>
 
-      <header className="mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight capitalize mb-2">
-          {categoryName} Briefing
-        </h1>
-        <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 text-sm font-medium">
-          <Calendar className="w-4 h-4" />
-          <span>Saturday, July 18th, 2026</span>
-        </div>
-      </header>
+      <main className="max-w-4xl mx-auto px-6 py-10 md:py-16 text-[var(--foreground)] pt-20">
+        <button 
+          onClick={handleClearAndExit}
+          className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Change Discipline
+        </button>
 
-      <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)]">
-          Today's Overview
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-base md:text-lg">
-          {data?.overview}
-        </p>
-      </section>
+        <header className="mb-12">
+          {/* Subtle padding added to prevent custom gradient clipping profiles */}
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent py-1">
+            {categoryName} Briefing
+          </h1>
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
+            <Calendar className="w-4 h-4" />
+            <span>Saturday, July 18th, 2026</span>
+          </div>
+        </header>
 
-      <section>
-        <h2 className="text-2xl font-bold mb-6 tracking-tight">Top Stories</h2>
-        <div className="flex flex-col gap-6">
-          {data?.stories?.map((story, idx) => (
-            <article 
-              key={idx} 
-              className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3"
-            >
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-wider uppercase text-neutral-400 dark:text-neutral-500">
-                <span>{story.publisher}</span>
-                <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
-                <span>{story.published}</span>
-              </div>
+        <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--accent)]">
+            Today's Overview
+          </h2>
+          <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base md:text-lg">
+            {data?.overview}
+          </p>
+        </section>
 
-              <h3 className="text-lg md:text-xl font-bold tracking-tight leading-snug">
-                {story.title}
-              </h3>
+        <section>
+          <h2 className="text-2xl font-bold mb-6 tracking-tight text-[var(--foreground)]">Top Stories</h2>
+          <div className="flex flex-col gap-6">
+            {data?.stories?.map((story, idx) => (
+              <article 
+                key={idx} 
+                className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
+              >
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+                  <span>{story.publisher}</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                  <span>{story.published}</span>
+                </div>
 
-              <p className="text-neutral-600 dark:text-neutral-300 text-sm md:text-base leading-relaxed">
-                {story.summary}
-              </p>
+                <h3 className="text-lg md:text-xl font-bold tracking-tight leading-snug text-[var(--foreground)]">
+                  {story.title}
+                </h3>
 
-              <div className="pt-2">
-                <a 
-                  href={story.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
-                >
-                  Read Original
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-    </main>
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed">
+                  {story.summary}
+                </p>
+
+                <div className="pt-2">
+                  <a 
+                    href={story.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
+                  >
+                    Read Original
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
 
@@ -102,10 +124,10 @@ export default function BriefingPage() {
   const [category, setCategory] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Using sessionStorage now instead of localStorage
     const savedCategory = sessionStorage.getItem("engineer_discipline");
     if (!savedCategory) {
       router.push("/");
@@ -126,10 +148,33 @@ export default function BriefingPage() {
         setError(err.message);
         setLoading(false);
       });
+
+    // Dark mode alignment
+    const localTheme = localStorage.getItem("theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    
+    if (localTheme === "dark" || (!localTheme && systemPrefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    }
   }, [router]);
 
+  const toggleDarkMode = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
+  };
+
   const handleGoBack = () => {
-    // Wipe out the engineering session selection completely
     sessionStorage.removeItem("engineer_discipline");
     router.push("/");
   };
@@ -138,26 +183,44 @@ export default function BriefingPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen fixed inset-0 bg-[var(--background)] overflow-hidden gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
-        <p className="text-neutral-500 font-medium">Generating your briefing...</p>
+        <p className="text-slate-500 font-medium dark:text-slate-400">Generating your briefing...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center">
-        <div className="p-4 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl mb-6">
-          {error}
-        </div>
-        <button 
-          onClick={handleGoBack}
-          className="px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
+      <div className="w-full min-h-screen bg-[var(--background)] relative flex flex-col justify-center">
+        {/* Dark mode toggle availability within error view state blocks */}
+        <button
+          onClick={toggleDarkMode}
+          className="absolute top-6 right-6 p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm z-50"
+          aria-label="Toggle dark mode"
         >
-          Go Back
+          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
         </button>
+
+        <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center">
+          <div className="p-4 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl mb-6 border border-red-100 dark:border-red-900/30">
+            {error}
+          </div>
+          <button 
+            onClick={handleGoBack}
+            className="px-5 py-2 text-sm font-semibold rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-200"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
-  return <BriefingLayout data={data!} categoryName={category} />;
+  return (
+    <BriefingLayout 
+      data={data!} 
+      categoryName={category} 
+      isDarkMode={isDarkMode} 
+      toggleDarkMode={toggleDarkMode} 
+    />
+  );
 }
