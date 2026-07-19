@@ -18,17 +18,19 @@ type BriefingData = {
   stories: Story[];
 };
 
-// 1. Rename your UI component so it's a regular sub-component, not the default page export
 function BriefingLayout({ data, categoryName }: { data: BriefingData; categoryName: string }) {
   const router = useRouter();
+
+  const handleClearAndExit = () => {
+    // Clear session storage before leaving so the homepage won't push us straight back here
+    sessionStorage.removeItem("engineer_discipline");
+    router.push("/");
+  };
 
   return (
     <main className="max-w-4xl mx-auto px-6 py-10 md:py-16 text-[var(--foreground)]">
       <button 
-        onClick={() => {
-          localStorage.removeItem("engineer_discipline");
-          router.push("/");
-        }}
+        onClick={handleClearAndExit}
         className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors shadow-sm"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -95,7 +97,6 @@ function BriefingLayout({ data, categoryName }: { data: BriefingData; categoryNa
   );
 }
 
-// 2. The valid default Page component that Next.js expects
 export default function BriefingPage() {
   const [data, setData] = useState<BriefingData | null>(null);
   const [category, setCategory] = useState<string>("");
@@ -104,7 +105,8 @@ export default function BriefingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const savedCategory = localStorage.getItem("engineer_discipline");
+    // Using sessionStorage now instead of localStorage
+    const savedCategory = sessionStorage.getItem("engineer_discipline");
     if (!savedCategory) {
       router.push("/");
       return;
@@ -126,6 +128,12 @@ export default function BriefingPage() {
       });
   }, [router]);
 
+  const handleGoBack = () => {
+    // Wipe out the engineering session selection completely
+    sessionStorage.removeItem("engineer_discipline");
+    router.push("/");
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -142,8 +150,8 @@ export default function BriefingPage() {
           {error}
         </div>
         <button 
-          onClick={() => router.push("/")}
-          className="px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm"
+          onClick={handleGoBack}
+          className="px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
         >
           Go Back
         </button>
