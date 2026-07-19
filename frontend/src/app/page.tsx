@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Cpu, Settings, Zap, HardHat, FlaskConical, Layers } from "lucide-react";
 
 type Category = { id: string; name: string };
+
+// Define your categories statically right here so they load instantly (0ms)
+const STATIC_CATEGORIES: Category[] = [
+  { id: "ai", name: "AI & Tech" },
+  { id: "mechanical", name: "Mechanical" },
+  { id: "electrical", name: "Electrical" },
+  { id: "civil", name: "Civil" },
+  { id: "chemical", name: "Chemical" },
+  { id: "materials", name: "Materials" },
+];
 
 const ICON_MAP: Record<string, any> = {
   "ai": Cpu,
@@ -16,24 +26,24 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function Home() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    // 1. If they've already picked a discipline, route them instantly
     const saved = localStorage.getItem("engineer_discipline");
     if (saved) {
       router.push("/briefing");
       return;
     }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load categories.");
-        return res.json();
-      })
-      .then(setCategories)
-      .catch((err) => setError(err.message));
+    // 2. Quietly wake up Render backend in the background so it's
+    // spinning up while the user reads this screen!
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      // Just hit your root API or a simple health endpoint to trigger cold start
+      fetch(process.env.NEXT_PUBLIC_API_URL).catch(() => {
+        // Silently catch errors; we only care about spinning the container up
+      });
+    }
   }, [router]);
 
   const selectCategory = (id: string) => {
@@ -50,27 +60,22 @@ export default function Home() {
         Choose your engineering discipline for a customized, 5-minute daily briefing.
       </p>
 
-      {error ? (
-        <div className="p-4 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl">
-          {error}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
-          {categories.map((cat) => {
-            const Icon = ICON_MAP[cat.id] || Settings;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => selectCategory(cat.id)}
-                className="flex flex-col items-center justify-center p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
-              >
-                <Icon className="w-8 h-8 mb-4 text-neutral-400 group-hover:text-[var(--accent)] transition-colors" />
-                <span className="font-semibold text-lg">{cat.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Render the grid instantly from static data */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+        {STATIC_CATEGORIES.map((cat) => {
+          const Icon = ICON_MAP[cat.id] || Settings;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => selectCategory(cat.id)}
+              className="flex flex-col items-center justify-center p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
+            >
+              <Icon className="w-8 h-8 mb-4 text-neutral-400 group-hover:text-[var(--accent)] transition-colors" />
+              <span className="font-semibold text-lg">{cat.name}</span>
+            </button>
+          );
+        })}
+      </div>
     </main>
   );
 }
