@@ -7,12 +7,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Define your fallback chain: (API_KEY_ENV_NAME, MODEL_NAME)
-# If you don't have a backup key, both will safely use GEMINI_API_KEY but try different models.
+# UPDATED: Gemini 3.1 Flash Lite is now the primary driver to optimize free quota limits.
 FALLBACK_CHAIN = [
+    ("GEMINI_API_KEY", "gemini-3.1-flash-lite"), # <-- ADDED FIRST
     ("GEMINI_API_KEY", "gemini-3.5-flash"),
     ("GEMINI_API_KEY", "gemini-2.5-flash"),
     ("GEMINI_API_KEY", "gemini-2.0-flash"),
     # Optional secondary account backup strategy:
+    ("GEMINI_API_KEY_BACKUP", "gemini-3.1-flash-lite"), # <-- ADDED BACKUP
     ("GEMINI_API_KEY_BACKUP", "gemini-2.5-flash"),
     ("GEMINI_API_KEY_BACKUP", "gemini-2.0-flash"),
 ]

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon, Image as ImageIcon, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon, Sparkles } from "lucide-react";
 
 type Story = {
   title: string;
@@ -18,6 +18,14 @@ type BriefingData = {
   generated_at: string;
   stories: Story[];
 };
+
+// Curated array of real, non-AI engineering/tech photography from Unsplash to use as bulletproof fallbacks
+const FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=500&q=80", // Engineering / Lab workstation
+  "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=500&q=80", // Clean modern technology / Robotics
+  "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&q=80", // Circuit / Hardware development
+  "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=500&q=80", // Hardware components / Optics
+];
 
 function BriefingLayout({ 
   data, 
@@ -37,18 +45,15 @@ function BriefingLayout({
     router.push("/");
   };
 
-  // HELPER FUNCTION: Groups sentences into a cleaner Editorial/Digest layout
   const formatOverview = (text: string) => {
     if (!text) return null;
     const sentences = text.split(/\.\s+/).map(s => s.trim()).filter(Boolean).map(s => s.endsWith('.') ? s : `${s}.`);
     
     if (sentences.length <= 2) {
-      return <p className="text-slate-800 dark:text-slate-200 text-base md:text-lg leading-relaxed font-medium">{text}</p>;
+      return <p className="text-[var(--foreground)] text-base md:text-lg leading-relaxed font-medium">{text}</p>;
     }
 
-    // Treat the first two sentences as a bold summary lead paragraph
     const leadParagraph = sentences.slice(0, 2).join(" ");
-    // Group remaining sentences into dual-sentence points for intuitive scanning
     const remainingSentences = sentences.slice(2);
     const bulletGroups: string[] = [];
     for (let i = 0; i < remainingSentences.length; i += 2) {
@@ -57,19 +62,19 @@ function BriefingLayout({
 
     return (
       <div className="space-y-6">
-        <p className="text-slate-900 dark:text-slate-100 text-base md:text-lg leading-relaxed font-semibold border-l-4 border-[var(--accent)] pl-4 py-1 bg-slate-50 dark:bg-slate-800/40 rounded-r-xl">
+        <p className="text-[var(--foreground)] text-base md:text-lg leading-relaxed font-semibold border-l-4 border-[var(--accent)] pl-4 py-3 bg-current/[0.05] rounded-r-xl">
           {leadParagraph}
         </p>
         
         <div className="space-y-4">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)] opacity-50 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" /> Key Takeaways
           </h4>
-          <ul className="space-y-3.5">
+          <ul className="space-y-4">
             {bulletGroups.map((group, index) => (
-              <li key={index} className="flex items-start gap-3 text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed">
-                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
-                <span>{group}</span>
+              <li key={index} className="flex items-start gap-3 text-[var(--foreground)] text-sm md:text-base leading-relaxed">
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[var(--accent)] opacity-70 shrink-0" />
+                <span className="opacity-90">{group}</span>
               </li>
             ))}
           </ul>
@@ -85,7 +90,7 @@ function BriefingLayout({
       <header className="w-full max-w-4xl mx-auto px-6 pt-6 flex justify-between items-center gap-4">
         <button 
           onClick={handleClearAndExit}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] hover:bg-current/[0.05] transition-colors shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden xs:inline">Change Discipline</span>
@@ -94,20 +99,20 @@ function BriefingLayout({
 
         <button
           onClick={toggleDarkMode}
-          className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+          className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] hover:bg-current/[0.05] transition-colors shadow-sm"
           aria-label="Toggle dark mode"
         >
-          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
+          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
         </button>
       </header>
 
       {/* Main Content Area */}
       <main className="max-w-4xl w-full mx-auto px-6 py-10 text-[var(--foreground)]">
         <header className="mb-12">
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent py-1">
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent py-1">
             {categoryName} Briefing
           </h1>
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
+          <div className="flex items-center gap-2 text-[var(--foreground)] opacity-60 text-sm font-medium">
             <Calendar className="w-4 h-4" />
             <span>
               {new Date().toLocaleDateString("en-US", {
@@ -121,7 +126,7 @@ function BriefingLayout({
         </header>
 
         {/* Today's Overview Block */}
-        <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
+        <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-current/[0.1] transition-colors duration-200">
           <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-[var(--accent)]">
             Today's Overview
           </h2>
@@ -132,71 +137,66 @@ function BriefingLayout({
 
         {/* Top Stories Section */}
         <section>
-          <h2 className="text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-100">Top Stories</h2>
+          <h2 className="text-2xl font-bold mb-6 tracking-tight text-[var(--foreground)]">Top Stories</h2>
           <div className="flex flex-col gap-6">
-            {data?.stories?.map((story, idx) => (
-              <article 
-                key={idx} 
-                className="p-5 md:p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
-              >
-                <div className="flex flex-col md:flex-row gap-6">
-                  
-                  {/* Left Column: Image Container */}
-                  <div className="w-full md:w-48 h-40 md:h-32 relative rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800/60 flex-shrink-0 flex items-center justify-center border border-slate-200/60 dark:border-slate-700/50">
-                    {story.image_url ? (
+            {data?.stories?.map((story, idx) => {
+              // Deterministically assign a fallback image relative to the loop index
+              const selectedFallback = FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length];
+              
+              return (
+                <article 
+                  key={idx} 
+                  className="p-5 md:p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:border-current/[0.1] transition-colors duration-200"
+                >
+                  <div className="flex flex-col md:flex-row gap-6">
+                    
+                    {/* Left Column: Fixed Image Container (Always filled with photography) */}
+                    <div className="w-full md:w-48 h-40 md:h-32 relative rounded-xl overflow-hidden bg-current/[0.03] flex-shrink-0 border border-[var(--card-border)]">
                       <img 
-                        src={story.image_url} 
+                        src={story.image_url && story.image_url.trim() !== "" ? story.image_url : selectedFallback} 
                         alt={story.title}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = "none";
-                          const parent = e.currentTarget.parentElement;
-                          if (parent) {
-                            const fallbackIcon = parent.querySelector(".img-fallback");
-                            if (fallbackIcon) fallbackIcon.classList.remove("hidden");
-                          }
+                          // If the image URL is dead or throws a CORS/404 block, swap to fallback photography instantly
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = selectedFallback;
                         }}
                       />
-                    ) : null}
-                    
-                    <div className={`img-fallback ${story.image_url ? 'hidden' : ''} flex flex-col items-center text-slate-400 dark:text-slate-500 gap-1`}>
-                      <ImageIcon className="w-5 h-5 stroke-[1.5]" />
-                      <span className="text-[10px] uppercase font-bold tracking-wider">Industry Feed</span>
                     </div>
+
+                    {/* Right Column: News Content */}
+                    <div className="flex flex-col flex-1 gap-2">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-[var(--foreground)] opacity-50">
+                        <span>{story.publisher}</span>
+                        <span className="w-1 h-1 rounded-full bg-[var(--foreground)] opacity-30" />
+                        <span>{story.published}</span>
+                      </div>
+
+                      <h3 className="text-lg font-bold tracking-tight leading-snug text-[var(--foreground)]">
+                        {story.title}
+                      </h3>
+
+                      <p className="text-[var(--foreground)] opacity-80 text-sm leading-relaxed mt-0.5">
+                        {story.summary}
+                      </p>
+
+                      <div className="pt-2 mt-auto">
+                        <a 
+                          href={story.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
+                        >
+                          Read Original
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+
                   </div>
-
-                  {/* Right Column: News Content */}
-                  <div className="flex flex-col flex-1 gap-2">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
-                      <span>{story.publisher}</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                      <span>{story.published}</span>
-                    </div>
-
-                    <h3 className="text-lg font-bold tracking-tight leading-snug text-slate-900 dark:text-slate-100">
-                      {story.title}
-                    </h3>
-
-                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mt-0.5">
-                      {story.summary}
-                    </p>
-
-                    <div className="pt-2 mt-auto">
-                      <a 
-                        href={story.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
-                      >
-                        Read Original
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  </div>
-
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </section>
       </main>
@@ -267,7 +267,7 @@ export default function BriefingPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen fixed inset-0 bg-[var(--background)] overflow-hidden gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
-        <p className="text-slate-600 font-medium dark:text-slate-400">Generating your briefing...</p>
+        <p className="text-[var(--foreground)] opacity-70 font-medium">Generating your briefing...</p>
       </div>
     );
   }
@@ -278,20 +278,20 @@ export default function BriefingPage() {
         <header className="w-full max-w-4xl mx-auto px-6 pt-6 flex justify-end">
           <button
             onClick={toggleDarkMode}
-            className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+            className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] hover:bg-current/[0.05] transition-colors shadow-sm"
             aria-label="Toggle dark mode"
           >
-            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
+            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
           </button>
         </header>
 
         <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center flex-1 justify-center">
-          <div className="p-4 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl mb-6 border border-red-100 dark:border-red-900/30">
+          <div className="p-4 bg-red-500/10 text-red-500 rounded-xl mb-6 border border-red-500/20">
             {error}
           </div>
           <button 
             onClick={handleGoBack}
-            className="px-5 py-2 text-sm font-semibold rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-200"
+            className="px-5 py-2 text-sm font-semibold rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--foreground)] shadow-sm hover:bg-current/[0.05] transition-all duration-200"
           >
             Go Back
           </button>
