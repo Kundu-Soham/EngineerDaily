@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon, Image as ImageIcon } from "lucide-react";
 
 type Story = {
   title: string;
@@ -10,6 +10,7 @@ type Story = {
   published: string;
   summary: string;
   url: string;
+  image_url?: string; // ADDED: Optional image support from source feed
 };
 
 type BriefingData = {
@@ -36,17 +37,14 @@ function BriefingLayout({
     router.push("/");
   };
 
-  // HELPER FUNCTION: Splits the large paragraph into clean, independent points
   const formatOverview = (text: string) => {
     if (!text) return null;
-    // Splits by period followed by space, filtering out empty strings
     const sentences = text.split(/\.\s+/).map(s => s.trim()).filter(Boolean);
     
     return (
       <ul className="space-y-4">
         {sentences.map((sentence, index) => (
           <li key={index} className="flex items-start gap-3 text-slate-900 dark:text-slate-100 text-base md:text-lg leading-relaxed font-medium">
-            {/* Custom subtle marker bullet matching your accent color */}
             <span className="mt-2.5 w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
             <span>{sentence.endsWith('.') ? sentence : `${sentence}.`}</span>
           </li>
@@ -86,13 +84,20 @@ function BriefingLayout({
           </h1>
           <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium">
             <Calendar className="w-4 h-4" />
-            <span>Saturday, July 18th, 2026</span>
+            <span>
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </div>
         </header>
 
-        {/* --- FIXED: Formatted overview using our bullet/list layout instead of one huge paragraph block --- */}
+        {/* Today's Overview */}
         <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
-          <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-[var(--accent)] font-semibold">
+          <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-[var(--accent)]">
             Today's Overview
           </h2>
           <div className="pl-1">
@@ -100,38 +105,73 @@ function BriefingLayout({
           </div>
         </section>
 
+        {/* Top Stories Section */}
         <section>
           <h2 className="text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-50">Top Stories</h2>
           <div className="flex flex-col gap-6">
             {data?.stories?.map((story, idx) => (
               <article 
                 key={idx} 
-                className="p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm flex flex-col gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
+                className="p-5 md:p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
               >
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
-                  <span>{story.publisher}</span>
-                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
-                  <span>{story.published}</span>
-                </div>
+                {/* Responsive Content layout container: Stacks columns on mobile, grids sideways on desktop */}
+                <div className="flex flex-col md:flex-row gap-6">
+                  
+                  {/* Left Column / Top Row: Story Image */}
+                  <div className="w-full md:w-48 h-40 md:h-32 relative rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center border border-slate-200/60 dark:border-slate-700/50">
+                    {story.image_url ? (
+                      <img 
+                        src={story.image_url} 
+                        alt={story.title}
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        onError={(e) => {
+                          // Fallback check if source image fails or blocks external hotlinking
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            const fallbackIcon = parent.querySelector(".img-fallback");
+                            if (fallbackIcon) fallbackIcon.classList.remove("hidden");
+                          }
+                        }}
+                      />
+                    ) : null}
+                    
+                    {/* Visual Fallback placeholder icon if image doesn't exist */}
+                    <div className={`img-fallback ${story.image_url ? 'hidden' : ''} flex flex-col items-center text-slate-400 dark:text-slate-500 gap-1`}>
+                      <ImageIcon className="w-6 h-6 stroke-[1.5]" />
+                      <span className="text-[10px] uppercase font-bold tracking-wider">Industry Feed</span>
+                    </div>
+                  </div>
 
-                <h3 className="text-lg md:text-xl font-bold tracking-tight leading-snug text-slate-900 dark:text-slate-100">
-                  {story.title}
-                </h3>
+                  {/* Right Column: News Content Details */}
+                  <div className="flex flex-col flex-1 gap-2">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+                      <span>{story.publisher}</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                      <span>{story.published}</span>
+                    </div>
 
-                <p className="text-slate-800 dark:text-slate-300 text-sm md:text-base leading-relaxed">
-                  {story.summary}
-                </p>
+                    <h3 className="text-lg font-bold tracking-tight leading-snug text-slate-900 dark:text-slate-100">
+                      {story.title}
+                    </h3>
 
-                <div className="pt-2">
-                  <a 
-                    href={story.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
-                  >
-                    Read Original
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                    <p className="text-slate-800 dark:text-slate-300 text-sm leading-relaxed mt-0.5">
+                      {story.summary}
+                    </p>
+
+                    <div className="pt-2 mt-auto">
+                      <a 
+                        href={story.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
+                      >
+                        Read Original
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+
                 </div>
               </article>
             ))}

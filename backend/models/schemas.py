@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional  # Added Optional
 
 class Story(BaseModel):
     title: str
@@ -7,6 +7,7 @@ class Story(BaseModel):
     published: str
     summary: str
     url: str
+    image_url: Optional[str] = None  # <-- ADD THIS LINE
 
 class BriefingResponse(BaseModel):
     overview: str

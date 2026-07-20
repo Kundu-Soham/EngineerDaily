@@ -15,12 +15,29 @@ async def fetch_feed(url: str) -> list:
             
             articles = []
             for entry in feed.entries:
+                # --- ADD IMAGE EXTRACTION LOGIC HERE ---
+                image_url = None
+                
+                # 1. Check standard attachments/enclosures
+                if 'enclosures' in entry and len(entry.enclosures) > 0:
+                    image_url = entry.enclosures[0].get('href')
+                
+                # 2. Check Media RSS specifications (<media:content>)
+                elif 'media_content' in entry and len(entry.media_content) > 0:
+                    image_url = entry.media_content[0].get('url')
+                    
+                # 3. Check for thumbnail tags (<media:thumbnail>)
+                elif 'media_thumbnail' in entry and len(entry.media_thumbnail) > 0:
+                    image_url = entry.media_thumbnail[0].get('url')
+                # ----------------------------------------
+
                 articles.append({
                     "title": entry.get("title", "No Title"),
                     "url": entry.get("link", url),
                     "published": entry.get("published", datetime.now().isoformat()),
                     "description": entry.get("description", ""),
-                    "publisher": feed.feed.get("title", "Unknown Publisher")
+                    "publisher": feed.feed.get("title", "Unknown Publisher"),
+                    "image_url": image_url  # <-- ADD THIS TO THE DICTIONARY
                 })
             return articles
         except Exception as e:
