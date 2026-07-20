@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Loader2, Sun, Moon, Image as ImageIcon, Sparkles } from "lucide-react";
 
 type Story = {
   title: string;
@@ -10,7 +10,7 @@ type Story = {
   published: string;
   summary: string;
   url: string;
-  image_url?: string; // ADDED: Optional image support from source feed
+  image_url?: string;
 };
 
 type BriefingData = {
@@ -37,19 +37,44 @@ function BriefingLayout({
     router.push("/");
   };
 
+  // HELPER FUNCTION: Groups sentences into a cleaner Editorial/Digest layout
   const formatOverview = (text: string) => {
     if (!text) return null;
-    const sentences = text.split(/\.\s+/).map(s => s.trim()).filter(Boolean);
+    const sentences = text.split(/\.\s+/).map(s => s.trim()).filter(Boolean).map(s => s.endsWith('.') ? s : `${s}.`);
     
+    if (sentences.length <= 2) {
+      return <p className="text-slate-800 dark:text-slate-200 text-base md:text-lg leading-relaxed font-medium">{text}</p>;
+    }
+
+    // Treat the first two sentences as a bold summary lead paragraph
+    const leadParagraph = sentences.slice(0, 2).join(" ");
+    // Group remaining sentences into dual-sentence points for intuitive scanning
+    const remainingSentences = sentences.slice(2);
+    const bulletGroups: string[] = [];
+    for (let i = 0; i < remainingSentences.length; i += 2) {
+      bulletGroups.push(remainingSentences.slice(i, i + 2).join(" "));
+    }
+
     return (
-      <ul className="space-y-4">
-        {sentences.map((sentence, index) => (
-          <li key={index} className="flex items-start gap-3 text-slate-900 dark:text-slate-100 text-base md:text-lg leading-relaxed font-medium">
-            <span className="mt-2.5 w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
-            <span>{sentence.endsWith('.') ? sentence : `${sentence}.`}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="space-y-6">
+        <p className="text-slate-900 dark:text-slate-100 text-base md:text-lg leading-relaxed font-semibold border-l-4 border-[var(--accent)] pl-4 py-1 bg-slate-50 dark:bg-slate-800/40 rounded-r-xl">
+          {leadParagraph}
+        </p>
+        
+        <div className="space-y-4">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" /> Key Takeaways
+          </h4>
+          <ul className="space-y-3.5">
+            {bulletGroups.map((group, index) => (
+              <li key={index} className="flex items-start gap-3 text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed">
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
+                <span>{group}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     );
   };
 
@@ -72,7 +97,7 @@ function BriefingLayout({
           className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
           aria-label="Toggle dark mode"
         >
-          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+          {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
         </button>
       </header>
 
@@ -82,7 +107,7 @@ function BriefingLayout({
           <h1 className="text-3xl md:text-5xl font-black tracking-tight capitalize mb-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent py-1">
             {categoryName} Briefing
           </h1>
-          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-medium">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
             <Calendar className="w-4 h-4" />
             <span>
               {new Date().toLocaleDateString("en-US", {
@@ -95,37 +120,35 @@ function BriefingLayout({
           </div>
         </header>
 
-        {/* Today's Overview */}
+        {/* Today's Overview Block */}
         <section className="p-6 md:p-8 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm mb-12 hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
           <h2 className="text-xl font-bold mb-5 flex items-center gap-2 text-[var(--accent)]">
             Today's Overview
           </h2>
-          <div className="pl-1">
+          <div>
             {formatOverview(data?.overview)}
           </div>
         </section>
 
         {/* Top Stories Section */}
         <section>
-          <h2 className="text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-50">Top Stories</h2>
+          <h2 className="text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-100">Top Stories</h2>
           <div className="flex flex-col gap-6">
             {data?.stories?.map((story, idx) => (
               <article 
                 key={idx} 
                 className="p-5 md:p-6 rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200"
               >
-                {/* Responsive Content layout container: Stacks columns on mobile, grids sideways on desktop */}
                 <div className="flex flex-col md:flex-row gap-6">
                   
-                  {/* Left Column / Top Row: Story Image */}
-                  <div className="w-full md:w-48 h-40 md:h-32 relative rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center border border-slate-200/60 dark:border-slate-700/50">
+                  {/* Left Column: Image Container */}
+                  <div className="w-full md:w-48 h-40 md:h-32 relative rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800/60 flex-shrink-0 flex items-center justify-center border border-slate-200/60 dark:border-slate-700/50">
                     {story.image_url ? (
                       <img 
                         src={story.image_url} 
                         alt={story.title}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
-                          // Fallback check if source image fails or blocks external hotlinking
                           (e.currentTarget as HTMLImageElement).style.display = "none";
                           const parent = e.currentTarget.parentElement;
                           if (parent) {
@@ -136,18 +159,17 @@ function BriefingLayout({
                       />
                     ) : null}
                     
-                    {/* Visual Fallback placeholder icon if image doesn't exist */}
                     <div className={`img-fallback ${story.image_url ? 'hidden' : ''} flex flex-col items-center text-slate-400 dark:text-slate-500 gap-1`}>
-                      <ImageIcon className="w-6 h-6 stroke-[1.5]" />
+                      <ImageIcon className="w-5 h-5 stroke-[1.5]" />
                       <span className="text-[10px] uppercase font-bold tracking-wider">Industry Feed</span>
                     </div>
                   </div>
 
-                  {/* Right Column: News Content Details */}
+                  {/* Right Column: News Content */}
                   <div className="flex flex-col flex-1 gap-2">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
                       <span>{story.publisher}</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                      <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
                       <span>{story.published}</span>
                     </div>
 
@@ -155,7 +177,7 @@ function BriefingLayout({
                       {story.title}
                     </h3>
 
-                    <p className="text-slate-800 dark:text-slate-300 text-sm leading-relaxed mt-0.5">
+                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mt-0.5">
                       {story.summary}
                     </p>
 
@@ -245,7 +267,7 @@ export default function BriefingPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen fixed inset-0 bg-[var(--background)] overflow-hidden gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--accent)]" />
-        <p className="text-slate-700 font-medium dark:text-slate-300">Generating your briefing...</p>
+        <p className="text-slate-600 font-medium dark:text-slate-400">Generating your briefing...</p>
       </div>
     );
   }
@@ -259,7 +281,7 @@ export default function BriefingPage() {
             className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
             aria-label="Toggle dark mode"
           >
-            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
           </button>
         </header>
 

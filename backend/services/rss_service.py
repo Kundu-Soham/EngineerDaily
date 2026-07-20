@@ -2,6 +2,17 @@ import feedparser
 import httpx
 from datetime import datetime
 import asyncio
+import re  # <-- ADDED for regex matching
+
+# HELPER FUNCTION: Safely scans the text block for any embedded HTML <img> tag
+def extract_image_from_html(html_content: str) -> str | None:
+    if not html_content or not isinstance(html_content, str):
+        return None
+    # Look for src="..." inside an img tag
+    match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html_content)
+    if match:
+        return match.group(1)
+    return None
 
 async def fetch_feed(url: str) -> list:
     headers = {
@@ -15,7 +26,6 @@ async def fetch_feed(url: str) -> list:
             
             articles = []
             for entry in feed.entries:
-                # --- ADD IMAGE EXTRACTION LOGIC HERE ---
                 image_url = None
                 
                 # 1. Check standard attachments/enclosures
@@ -29,7 +39,14 @@ async def fetch_feed(url: str) -> list:
                 # 3. Check for thumbnail tags (<media:thumbnail>)
                 elif 'media_thumbnail' in entry and len(entry.media_thumbnail) > 0:
                     image_url = entry.media_thumbnail[0].get('url')
-                # ----------------------------------------
+                
+                # --- FIXED: FALLBACK FOR MIT NEWS & TEXT-HEAVY RSS FEEDS ---
+                # If standard metadata lacks an image, extract it directly out of the description or summary markup block
+                if not image_url:
+                    image_url = extract_image_from_html(entry.get("description", ""))
+                if not image_url:
+                    image_url = extract_image_from_html(entry.get("summary", ""))
+                # -------------------------------------------------------------
 
                 articles.append({
                     "title": entry.get("title", "No Title"),
@@ -37,7 +54,7 @@ async def fetch_feed(url: str) -> list:
                     "published": entry.get("published", datetime.now().isoformat()),
                     "description": entry.get("description", ""),
                     "publisher": feed.feed.get("title", "Unknown Publisher"),
-                    "image_url": image_url  # <-- ADD THIS TO THE DICTIONARY
+                    "image_url": image_url  # Now safely populates instead of remaining None
                 })
             return articles
         except Exception as e:
@@ -60,5 +77,4 @@ async def get_latest_articles(urls: list[str], limit: int = 6) -> list[dict]:
             seen_urls.add(article["url"])
             unique_articles.append(article)
             
-    # Naive sort assuming RSS provides roughly chronological data
     return unique_articles[:limit]
