@@ -19,12 +19,20 @@ type BriefingData = {
   stories: Story[];
 };
 
-// Curated array of real, non-AI engineering/tech photography from Unsplash to use as bulletproof fallbacks
+// Expanded to 12 distinct, high-quality, real engineering/technology photographs to prevent overlap repetitions
 const FALLBACK_IMAGES = [
-  "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=500&q=80", // Engineering / Lab workstation
-  "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=500&q=80", // Clean modern technology / Robotics
-  "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&q=80", // Circuit / Hardware development
-  "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=500&q=80", // Hardware components / Optics
+  "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=500&q=80", // 1. Lab Workstation / Engineering
+  "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=500&q=80", // 2. Clean Automation / Robotics
+  "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&q=80", // 3. Circuit Prototyping / Microchips
+  "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=500&q=80", // 4. Optical Labs / Hardware Lens
+  "https://images.unsplash.com/photo-1535378917042-10a22c95931a?auto=format&fit=crop&w=500&q=80", // 5. Advanced Computation / UI
+  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=500&q=80", // 6. Servers & Network Infrastructure
+  "https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=500&q=80", // 7. Modern Electrical Distribution
+  "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80", // 8. Precision Blueprints / Display Tech
+  "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&w=500&q=80", // 9. Smart Material Design / NanoTech
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=500&q=80", // 10. Satellite / Deep Tech Infrastructure
+  "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=80", // 11. Motherboard Trace Paths
+  "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=500&q=80", // 12. Mechanical Assembly Components
 ];
 
 function BriefingLayout({ 
@@ -140,8 +148,9 @@ function BriefingLayout({
           <h2 className="text-2xl font-bold mb-6 tracking-tight text-[var(--foreground)]">Top Stories</h2>
           <div className="flex flex-col gap-6">
             {data?.stories?.map((story, idx) => {
-              // Deterministically assign a fallback image relative to the loop index
+              // Assigns a completely unique fallback image relative to the loop index to avoid duplicate graphics
               const selectedFallback = FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length];
+              const validInitialSrc = story.image_url && story.image_url.trim() !== "" ? story.image_url : selectedFallback;
               
               return (
                 <article 
@@ -150,14 +159,21 @@ function BriefingLayout({
                 >
                   <div className="flex flex-col md:flex-row gap-6">
                     
-                    {/* Left Column: Fixed Image Container (Always filled with photography) */}
+                    {/* Left Column: Fixed Image Container */}
                     <div className="w-full md:w-48 h-40 md:h-32 relative rounded-xl overflow-hidden bg-current/[0.03] flex-shrink-0 border border-[var(--card-border)]">
                       <img 
-                        src={story.image_url && story.image_url.trim() !== "" ? story.image_url : selectedFallback} 
+                        src={validInitialSrc} 
                         alt={story.title}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        onLoad={(e) => {
+                          // DOUBLE INSURANCE CHECK: Detects if the original server returned text/html instead of binary image data
+                          const img = e.currentTarget;
+                          if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+                            img.src = selectedFallback;
+                          }
+                        }}
                         onError={(e) => {
-                          // If the image URL is dead or throws a CORS/404 block, swap to fallback photography instantly
+                          // Fallback triggers if asset throws standard 404/network errors
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = selectedFallback;
                         }}
