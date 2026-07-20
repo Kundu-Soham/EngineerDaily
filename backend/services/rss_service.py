@@ -16,7 +16,8 @@ def extract_image_from_html(html_content: str) -> str | None:
 
 async def fetch_feed(url: str) -> list:
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' # <-- ADD THIS LINE
     }
     async with httpx.AsyncClient(timeout=20.0, headers=headers) as client:
         try:
