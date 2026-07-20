@@ -13,11 +13,11 @@
     "https://www.newcivilengineer.com/feed/"
   ],
   "chemical": [
-    "https://www.chemicalengineeringjournal.com/rss",
-    "https://www.chemanager-online.com/en/rss.xml"
+    "https://www.nature.com/subjects/chemistry.rss",
+    "https://www.chemistryworld.com/rss"
   ],
   "materials": [
-    "https://phys.org/rss-feed/science-news/materials-science/",
-    "https://www.sciencedaily.com/rss/matter_energy/materials_science.xml"
+    "https://www.nature.com/subjects/materials-science.rss",
+    "https://phys.org/rss-feed/science-news/materials-science/"
   ]
 }
