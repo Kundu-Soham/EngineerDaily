@@ -1,23 +1,35 @@
 {
   "ai": [
     "https://feeds.feedburner.com/TechCrunch/artificial-intelligence",
-    "https://news.mit.edu/rss/topic/artificial-intelligence2"
+    "https://news.mit.edu/rss/topic/artificial-intelligence2",
+    "http://export.arxiv.org/rss/cs.CV",
+    "https://pytorch.org/blog/feed.xml"
   ],
   "mechanical": [
-    "https://phys.org/rss-feed/technology-news/engineering/"
+    "https://phys.org/rss-feed/technology-news/engineering/",
+    "https://news.mit.edu/rss/topic/mechanical-engineering",
+    "https://www.theengineer.co.uk/rss"
   ],
   "electrical": [
-    "https://spectrum.ieee.org/feeds/feed.rss"
+    "https://spectrum.ieee.org/feeds/feed.rss",
+    "https://www.electronicsweekly.com/feed/",
+    "https://news.mit.edu/rss/topic/electrical-engineering"
   ],
   "civil": [
-    "https://www.newcivilengineer.com/feed/"
+    "https://www.newcivilengineer.com/feed/",
+    "https://www.constructionenquirer.com/feed/",
+    "https://www.smartcitiesworld.net/rss"
   ],
   "chemical": [
     "https://www.nature.com/subjects/chemistry.rss",
-    "https://www.chemistryworld.com/rss"
+    "https://www.chemistryworld.com/rss",
+    "https://phys.org/rss-feed/chemistry-news/",
+    "https://news.mit.edu/rss/topic/chemical-engineering"
   ],
   "materials": [
     "https://www.nature.com/subjects/materials-science.rss",
-    "https://phys.org/rss-feed/science-news/materials-science/"
+    "https://phys.org/rss-feed/science-news/materials-science/",
+    "https://www.azom.com/rss.aspx",
+    "https://news.mit.edu/rss/topic/materials-science-engineering"
   ]
 }
